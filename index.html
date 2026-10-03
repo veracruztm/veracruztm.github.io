@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vera Cruz</title>
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vera Cruz">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  html,body{margin:0;padding:0;height:100%;background:#fff;overflow:hidden}
+  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;
+    padding-top:env(safe-area-inset-top);box-sizing:border-box;background:#fff}
+  #splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:#fff;z-index:2;transition:opacity .3s;font-family:-apple-system,Roboto,Arial,sans-serif;color:#5b6878;font-size:14px}
+  #splash img{width:180px;margin-bottom:18px}
+  #splash.off{opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="splash"><img src="icon-512.png" alt="Vera Cruz"><div id="msg">Carregando…</div></div>
+<iframe id="app" title="Vera Cruz - Registro de Passageiros" allow="clipboard-write"
+  src="https://script.google.com/macros/s/AKfycbxbCtT9Mps6Fzw8rQYr4507G2cy-o3HW5TpsFwxGFx2PFCp0tdZ9LrF0gUe0qYqk7Nr/exec"></iframe>
+<script>
+  // tira a tela de abertura quando o sistema carregar
+  var splash = document.getElementById('splash');
+  document.getElementById('app').addEventListener('load', function(){ setTimeout(function(){ splash.classList.add('off'); }, 400); });
+  setTimeout(function(){ document.getElementById('msg').textContent = 'Conexão lenta… aguarde'; }, 8000);
+
+  // memória do aparelho: o formulário pede/guarda auxiliar, embarcação e terminal aqui
+  // (no iPhone o formulário dentro do Google não consegue guardar sozinho)
+  var CHAVES = ['auxiliar','embarcacao','terminal'];
+  window.addEventListener('message', function(ev){
+    var d = ev.data || {};
+    if (!d || d.vc !== 1) return;
+    try {
+      if (d.tipo === 'set' && CHAVES.indexOf(d.k) > -1) localStorage.setItem('vc_' + d.k, d.v || '');
+      if (d.tipo === 'get') {
+        var r = {}; CHAVES.forEach(function(k){ r[k] = localStorage.getItem('vc_' + k) || ''; });
+        ev.source.postMessage({ vc: 1, tipo: 'valores', valores: r }, '*');
+      }
+    } catch (e) {}
+  });
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
+</script>
+</body>
+</html>
